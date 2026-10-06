@@ -1,88 +1,68 @@
 <?php
-require __DIR__ . '/inc/bootstrap.php';
+require dirname(__DIR__) . '/inc/bootstrap.php';
+require __DIR__ . '/_layout.php';
 
-$mode = ($_GET['mode'] ?? '') === 'register' ? 'register' : 'login';
-$backTo = ($_GET['back'] ?? '') === 'cart' ? 'cart.php' : 'account.php';
-$errors = [];
-$old = [];
+$hasAdmins = (int)q('SELECT COUNT(*) FROM admins')->fetchColumn() > 0;
+$error = '';
 
-if (current_user()) {
-    redirect($backTo);
-}
+// Простая защита от перебора: пауза после 5 неудачных попыток
+$_SESSION['admin_fails'] = $_SESSION['admin_fails'] ?? 0;
 
 if (is_post()) {
     csrf_check();
-    if (post('mode') === 'register') {
-        $mode = 'register';
-        $old = ['email' => mb_strtolower(post('email')), 'phone' => post('phone'), 'company' => post('company')];
-        $phone = $old['phone'] !== '' ? normalize_phone($old['phone']) : '';
-        $pass = (string)($_POST['password'] ?? '');
-        if ($old['email'] === '' && $phone === '') $errors[] = 'Укажите email или телефон.';
-        if ($old['email'] !== '' && !filter_var($old['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Проверьте email.';
-        if ($phone !== '' && strlen($phone) !== 11) $errors[] = 'Проверьте номер телефона.';
-        if (mb_strlen($pass) < 6) $errors[] = 'Пароль — не короче 6 символов.';
-        if (!$errors) {
-            if ($old['email'] !== '' && q('SELECT 1 FROM users WHERE email = ?', [$old['email']])->fetchColumn()) $errors[] = 'Этот email уже зарегистрирован — войдите.';
-            if ($phone !== '' && q('SELECT 1 FROM users WHERE phone = ?', [$phone])->fetchColumn()) $errors[] = 'Этот телефон уже зарегистрирован — войдите.';
-        }
-        if (!$errors) {
-            q('INSERT INTO users (email, phone, password_hash, company) VALUES (?,?,?,?)', [
-                $old['email'] ?: null, $phone ?: null, password_hash($pass, PASSWORD_DEFAULT), $old['company'],
-            ]);
-            session_regenerate_id(true);
-            $_SESSION['user_id'] = (int)db()->lastInsertId();
-            flash('Вы зарегистрированы. Заполните реквизиты компании — они будут подставляться в заявки.');
-            redirect($backTo === 'cart.php' ? 'cart.php' : 'account.php?tab=profile');
+    $login = post('login');
+    $pass = (string)($_POST['password'] ?? '');
+    if (!$hasAdmins) {
+        // Первый запуск: создание главного администратора
+        if (!preg_match('~^[a-zA-Z0-9_.@-]{3,64}$~', $login)) {
+            $error = 'Логин: от 3 символов, латиница, цифры, точка, дефис.';
+        } elseif (mb_strlen($pass) < 8) {
+            $error = 'Пароль — не короче 8 символов.';
+        } elseif ($pass !== (string)($_POST['password2'] ?? '')) {
+            $error = 'Пароли не совпадают.';
+        } else {
+            q('INSERT INTO admins (login, password_hash) VALUES (?, ?)', [$login, password_hash($pass, PASSWORD_DEFAULT)]);
+            session_regen();
+            $_SESSION['admin_id'] = (int)db()->lastInsertId();
+            flash('Администратор создан. Начните с раздела «Настройки сайта»: телефон, email, адрес.');
+            redirect('admin/settings.php');
         }
     } else {
-        $login = post('login');
-        $old = ['login' => $login];
-        $pass = (string)($_POST['password'] ?? '');
-        $u = null;
-        if (str_contains($login, '@')) {
-            $u = q('SELECT * FROM users WHERE email = ?', [mb_strtolower($login)])->fetch();
-        } elseif ($login !== '') {
-            $u = q('SELECT * FROM users WHERE phone = ?', [normalize_phone($login)])->fetch();
+        if ($_SESSION['admin_fails'] >= 5) {
+            sleep(3);
         }
-        if ($u && password_verify($pass, $u['password_hash'])) {
-            session_regenerate_id(true);
-            $_SESSION['user_id'] = (int)$u['id'];
-            redirect($backTo);
+        $a = q('SELECT * FROM admins WHERE login = ?', [$login])->fetch();
+        if ($a && password_verify($pass, $a['password_hash'])) {
+            session_regen();
+            $_SESSION['admin_id'] = (int)$a['id'];
+            $_SESSION['admin_fails'] = 0;
+            redirect('admin/index.php');
         }
-        $errors[] = 'Неверный логин или пароль.';
+        $_SESSION['admin_fails']++;
+        $error = 'Неверный логин или пароль.';
     }
 }
 
-page_header($mode === 'register' ? 'Регистрация' : 'Вход');
-$qs = $backTo === 'cart.php' ? '&back=cart' : '';
-?>
-<div class="container page-pad">
-  <div style="max-width:480px; margin:40px auto 0">
-    <div class="chips">
-      <a class="chip <?= $mode === 'login' ? 'active' : '' ?>" href="<?= url('login.php?mode=login' . $qs) ?>">Вход</a>
-      <a class="chip <?= $mode === 'register' ? 'active' : '' ?>" href="<?= url('login.php?mode=register' . $qs) ?>">Регистрация</a>
-    </div>
-    <h1><?= $mode === 'register' ? 'Регистрация' : 'Вход в личный кабинет' ?></h1>
-    <?php if ($errors): ?><div class="flash flash-error" role="alert" style="margin:0 0 16px"><?= e(implode(' ', $errors)) ?></div><?php endif; ?>
+if (current_admin()) {
+    redirect('admin/index.php');
+}
 
-    <?php if ($mode === 'login'): ?>
-      <form class="form-narrow" method="post">
-        <?= csrf_field() ?><input type="hidden" name="mode" value="login">
-        <label class="field">Email или телефон<input name="login" required autocomplete="username" value="<?= e($old['login'] ?? '') ?>"></label>
-        <label class="field">Пароль<input name="password" type="password" required autocomplete="current-password"></label>
-        <button class="btn btn-accent btn-lg" type="submit">Войти</button>
-        <p class="muted small" style="margin:0">Забыли пароль? Напишите нам на <?= e(setting('email')) ?> или позвоните <?= e(setting('phone')) ?> — менеджер поможет восстановить доступ.</p>
-      </form>
-    <?php else: ?>
-      <form class="form-narrow" method="post">
-        <?= csrf_field() ?><input type="hidden" name="mode" value="register">
-        <label class="field">Email<input name="email" type="email" autocomplete="email" value="<?= e($old['email'] ?? '') ?>"></label>
-        <label class="field">Телефон<input name="phone" type="tel" autocomplete="tel" placeholder="+7" value="<?= e($old['phone'] ?? '') ?>"><span class="hint">Укажите email, телефон или оба — входить можно по любому из них.</span></label>
-        <label class="field">Название компании<input name="company" value="<?= e($old['company'] ?? '') ?>"></label>
-        <label class="field">Пароль<input name="password" type="password" required minlength="6" autocomplete="new-password"><span class="hint">Не короче 6 символов</span></label>
-        <button class="btn btn-accent btn-lg" type="submit">Зарегистрироваться</button>
-      </form>
+admin_header('Вход');
+?>
+<div class="a-card">
+  <h1 style="margin-bottom:6px"><span style="color:var(--accent)">L</span>eon_pro</h1>
+  <p class="a-muted" style="margin:0 0 18px"><?= $hasAdmins ? 'Вход в админку' : 'Первый запуск: создайте главного администратора' ?></p>
+  <?php if (IS_DEMO && $hasAdmins): ?><div class="a-flash a-flash-info">Демо-доступ: логин <b>demo</b>, пароль <b>leonpro2026</b></div><?php endif; ?>
+  <?php if ($error): ?><div class="a-flash a-flash-error"><?= e($error) ?></div><?php endif; ?>
+  <form method="post" class="a-form">
+    <?= csrf_field() ?>
+    <?= a_input('login', 'Логин', post('login'), 'text', '', ['required' => true, 'autocomplete' => 'username']) ?>
+    <?= a_input('password', 'Пароль', '', 'password', $hasAdmins ? '' : 'Не короче 8 символов', ['required' => true, 'autocomplete' => $hasAdmins ? 'current-password' : 'new-password']) ?>
+    <?php if (!$hasAdmins): ?>
+      <?= a_input('password2', 'Повторите пароль', '', 'password', '', ['required' => true, 'autocomplete' => 'new-password']) ?>
     <?php endif; ?>
-  </div>
+    <button class="a-btn" type="submit"><?= $hasAdmins ? 'Войти' : 'Создать и войти' ?></button>
+  </form>
 </div>
-<?php page_footer();
+<p style="text-align:center"><a href="<?= url() ?>">← На сайт</a></p>
+<?php admin_footer();

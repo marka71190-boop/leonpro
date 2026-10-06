@@ -3,54 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leon_pro — анимация логотипа</title>
+<title>Leon_pro — логотип</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Golos+Text:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@500;600&display=swap" rel="stylesheet">
 <style>
-html,body{margin:0;height:100%}
-body{background:#1A1A1C;font-family:'Golos Text',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;overflow:hidden;position:relative}
-.corner{position:absolute;left:0;top:0;width:0;height:0;border-style:solid;border-width:150px 150px 0 0;border-color:#F07F1F transparent transparent transparent;animation:corner 7s cubic-bezier(.2,.8,.2,1) infinite both}
-.top{position:absolute;top:48px;right:64px;font-family:Unbounded,sans-serif;font-weight:600;font-size:clamp(22px,3vw,34px);color:#F2F2F2;animation:top 7s cubic-bezier(.2,.8,.2,1) infinite both}
-.top span{color:#F07F1F}
-.mark{width:min(520px,80vw);height:auto}
-.slogan{font-size:clamp(15px,2.2vw,26px);font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#F2F2F2;text-align:center;padding:0 16px;animation:slogan 7s cubic-bezier(.2,.8,.2,1) infinite both}
-@keyframes slogan{0%,42%{opacity:0;transform:translateY(14px)}52%{opacity:1;transform:none}86%{opacity:1;transform:none}93%,100%{opacity:0;transform:none}}
-@keyframes top{0%,34%{opacity:0;transform:translateY(-10px)}44%{opacity:1;transform:none}86%{opacity:1;transform:none}93%,100%{opacity:0;transform:none}}
-@keyframes corner{0%,28%{transform:translate(-90px,-90px)}38%{transform:none}86%{transform:none}96%,100%{transform:translate(-90px,-90px)}}
+html,body{margin:0}
+body{background:#fff;color:#17171A;font-family:'Golos Text',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:32px 16px;box-sizing:border-box}
+.mark{width:min(520px,90vw);height:auto}
+.slogan{font-size:clamp(15px,2.2vw,24px);font-weight:600;letter-spacing:.14em;text-transform:uppercase;text-align:center;color:#3D4046}
+.files{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font-size:14px}
+.files a{color:#A8520E;padding:8px 12px;border:1px solid #E4E5E8;border-radius:6px;text-decoration:none}
+.files a:hover{border-color:#17171A}
 </style>
 </head>
 <body>
-<div class="corner"></div>
-<div class="top"><span>L</span>eon_pro</div>
-<svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 470" role="img" aria-label="Leon_pro">
-<style>
-.a,.b,.c{transform-box:fill-box;transform-origin:50% 100%}
-.a{animation:kA 7s cubic-bezier(.2,.8,.2,1) infinite both}
-.b{animation:kB 7s cubic-bezier(.2,.8,.2,1) infinite both}
-.c{animation:kC 7s cubic-bezier(.2,.8,.2,1) infinite both}
-.band{transform-box:fill-box;transform-origin:50% 50%;animation:kBand 7s cubic-bezier(.2,.8,.2,1) infinite both}
-.word{font-family:Unbounded,'Arial Black',sans-serif;font-weight:700;font-size:54px;animation:kWord 7s cubic-bezier(.2,.8,.2,1) infinite both}
-.shine{animation:kShine 7s ease-in-out infinite both}
-@keyframes kA{0%{transform:scaleY(0);opacity:0}2%{opacity:1}12%{transform:scaleY(1)}86%{opacity:1;transform:scaleY(1)}93%,100%{opacity:0;transform:scaleY(1)}}
-@keyframes kB{0%,4%{transform:scaleY(0);opacity:0}6%{opacity:1}16%{transform:scaleY(1)}86%{opacity:1;transform:scaleY(1)}93%,100%{opacity:0;transform:scaleY(1)}}
-@keyframes kC{0%,9%{transform:scaleY(0);opacity:0}11%{opacity:1}21%{transform:scaleY(1)}86%{opacity:1;transform:scaleY(1)}93%,100%{opacity:0;transform:scaleY(1)}}
-@keyframes kBand{0%,17%{transform:scaleX(0);opacity:0}19%{opacity:1}27%{transform:scaleX(1)}86%{opacity:1;transform:scaleX(1)}93%,100%{opacity:0;transform:scaleX(1)}}
-@keyframes kWord{0%,25%{letter-spacing:.45em;opacity:0}36%{letter-spacing:0;opacity:1}86%{letter-spacing:0;opacity:1}93%,100%{letter-spacing:0;opacity:0}}
-@keyframes kShine{0%,38%{transform:translateX(0)}52%,100%{transform:translateX(760px)}}
-@media (prefers-reduced-motion:reduce){.a,.b,.c,.band,.word,.shine{animation:none}}
-</style>
-<defs>
-<linearGradient id="or" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F59A3A"/><stop offset="1" stop-color="#D9620F"/></linearGradient>
-<linearGradient id="bg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E5701A"/><stop offset=".5" stop-color="#F58C2C"/><stop offset="1" stop-color="#E06A14"/></linearGradient>
-<clipPath id="cl"><polygon points="320,140 170,400 470,400"/><polygon points="90,360 510,360 560,450 40,450"/></clipPath>
-</defs>
-<polygon class="a" points="250,40 40,400 460,400" fill="#F4F1EC"/>
-<polygon class="b" points="330,70 130,400 530,400" fill="#F4F1EC"/>
-<polygon class="c" points="320,140 170,400 470,400" fill="url(#or)"/>
-<polygon class="band" points="90,360 510,360 560,450 40,450" fill="url(#bg)"/>
-<g clip-path="url(#cl)"><rect class="shine" x="-140" y="100" width="70" height="380" fill="#fff" opacity=".35" transform="skewX(-20)"/></g>
-<text class="word" x="300" y="424" text-anchor="middle" fill="#17171A">Leon_pro</text>
-</svg>
+<img class="mark" src="assets/logo/leonpro-animated-for-light-bg.svg" alt="Логотип Leon_pro" width="540" height="430">
 <div class="slogan">Каждый проект с нами безупречен</div>
+<nav class="files" aria-label="Файлы логотипа">
+  <a href="assets/logo/leonpro-mark-for-light-bg.svg" download>SVG для светлого фона</a>
+  <a href="assets/logo/leonpro-mark-for-dark-bg.svg" download>SVG для тёмного фона</a>
+  <a href="assets/logo/leonpro-mark-for-light-bg.png" download>PNG прозрачный</a>
+  <a href="assets/logo/leonpro-horizontal-for-light-bg.svg" download>Горизонтальный SVG</a>
+  <a href="assets/logo/leonpro-animated-for-light-bg.svg" download>Анимация SVG</a>
+</nav>
 </body>
 </html>

@@ -88,6 +88,16 @@ if (is_post()) {
                 . "Телефон: {$old['phone']}\nEmail: {$old['email']}\nГород доставки: {$old['city']}\n"
                 . "Комментарий: " . ($old['comment'] ?: '—') . "\n\nСостав:\n" . implode("\n", $lines)
                 . "\n\nИтого: " . fmt_qty($total) . ' шт.' . ($sum > 0 ? ', ориентировочно ' . fmt_money($sum) : '');
+            // Заявка в Telegram-бот
+            $tg = '<b>Новая заявка № ' . $orderId . '</b>' . "\n\n"
+                . '<b>' . tg_h($old['company']) . '</b>, ИНН ' . tg_h($old['inn']) . "\n"
+                . tg_h($old['contact']) . "\n" . tg_h($old['phone']) . "\n" . tg_h($old['email']) . "\n"
+                . 'Город: ' . tg_h($old['city']) . "\n"
+                . ($old['comment'] !== '' ? 'Комментарий: ' . tg_h($old['comment']) . "\n" : '')
+                . "\n" . tg_h(implode("\n", $lines)) . "\n\n"
+                . '<b>Итого: ' . fmt_qty($total) . ' шт.</b>' . ($sum > 0 ? ', ориентировочно ' . tg_h(fmt_money($sum)) : '') . "\n\n"
+                . '<a href="' . tg_h(site_base_url() . '/admin/orders.php?id=' . $orderId) . '">Открыть заявку в админке</a>';
+            tg_notify($tg);
             foreach (array_filter(array_map('trim', explode(',', setting('manager_email')))) as $to) {
                 send_mail($to, 'Новая заявка № ' . $orderId . ' — ' . $old['company'], $body);
             }
